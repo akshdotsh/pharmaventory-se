@@ -21,9 +21,9 @@ const connectionOptions = {
  * Establishes connection with retry logic and error handling
  */
 export const connectDatabase = async (): Promise<void> => {
+  const mongoUri = process.env.MONGODB_URI;
+  
   try {
-    const mongoUri = process.env.MONGODB_URI;
-    
     if (!mongoUri) {
       throw new Error('MONGODB_URI environment variable is not defined');
     }
