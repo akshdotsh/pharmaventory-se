@@ -39,7 +39,7 @@ export const generateToken = (userId: string, email: string, role: UserRole): st
     };
 
     const token = jwt.sign(payload, jwtSecret, {
-      expiresIn: jwtExpire,
+      expiresIn: jwtExpire as string | number,
     });
 
     logger.debug('JWT token generated successfully', {
