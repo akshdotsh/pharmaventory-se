@@ -3,7 +3,7 @@
  * Handles token generation and verification
  */
 
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { UserRole } from '../models/User';
 import logger from './logger';
 
@@ -26,7 +26,7 @@ export interface TokenPayload {
 export const generateToken = (userId: string, email: string, role: UserRole): string => {
   try {
     const jwtSecret = process.env.JWT_SECRET;
-    const jwtExpire = process.env.JWT_EXPIRE || '7d';
+    const jwtExpire: string = process.env.JWT_EXPIRE || '7d';
 
     if (!jwtSecret) {
       throw new Error('JWT_SECRET is not defined in environment variables');
@@ -39,8 +39,8 @@ export const generateToken = (userId: string, email: string, role: UserRole): st
     };
 
     const token = jwt.sign(payload, jwtSecret, {
-      expiresIn: jwtExpire as string | number,
-    });
+      expiresIn: jwtExpire,
+    } as SignOptions);
 
     logger.debug('JWT token generated successfully', {
       workflow: 'authentication',
