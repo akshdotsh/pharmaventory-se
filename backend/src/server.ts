@@ -31,12 +31,37 @@ const app: Application = express();
 const httpServer = createServer(app);
 
 /**
+ * CORS Configuration
+ * Supports multiple origins for development and production
+ */
+const getAllowedOrigins = (): string | string[] => {
+  const corsOrigin = process.env.CORS_ORIGIN;
+  
+  if (corsOrigin) {
+    // If multiple origins are provided (comma-separated), split them
+    if (corsOrigin.includes(',')) {
+      return corsOrigin.split(',').map(origin => origin.trim());
+    }
+    return corsOrigin;
+  }
+  
+  // Default: allow both localhost and Vercel frontend
+  return [
+    'http://localhost:5173',
+    'https://pharma-fe.vercel.app',
+  ];
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+/**
  * Initialize Socket.IO for real-time updates
  */
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -47,8 +72,21 @@ const io = new SocketIOServer(httpServer, {
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      const origins = Array.isArray(allowedOrigins) ? allowedOrigins : [allowedOrigins];
+      
+      if (origins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
